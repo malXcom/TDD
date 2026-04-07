@@ -48,8 +48,8 @@ fn test_average_should_return_zero_when_given_all_zeros() {
 
 #[test]
 fn test_average_should_return_correct_mean_when_given_negative_values() {
-    let numbers = vec![-4.0, -2.0, 0.0, 2.0, 4.0];
-    assert_eq!(utils::average(&numbers), 0.0);
+    let numbers = vec![-4.0, -2.0, 1.0, 2.0, 4.0];
+    assert_eq!(utils::average(&numbers), 0.2);
 }
 
 // ── slug ────────────────────────────────────────────────────────────────────
@@ -99,4 +99,161 @@ fn test_clamp_should_return_value_itself_when_value_is_within_range() {
 fn test_clamp_should_return_boundary_when_value_equals_min_or_max() {
     assert_eq!(utils::clamp(200, 200, 400), 200);
     assert_eq!(utils::clamp(400, 200, 400), 400);
+}
+
+// ── sort_students ───────────────────────────────────────────────────────────────────
+
+#[test]
+fn test_sort_students_should_sort_by_grade_ascending() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 7,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), Some("grade"), Some("asc"));
+    assert_eq!(sorted_students[0].name, "Lou");
+    assert_eq!(sorted_students[1].name, "Romain");
+    assert_eq!(sorted_students[2].name, "Alice");
+}
+
+#[test]
+fn test_sort_students_should_sort_by_grade_descending() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 14,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), Some("grade"), Some("desc"));
+    assert_eq!(sorted_students[2].name, "Lou");
+    assert_eq!(sorted_students[1].name, "Romain");
+    assert_eq!(sorted_students[0].name, "Alice");
+}
+
+#[test]
+fn test_sort_students_should_sort_by_name_ascending() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 14,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), Some("name"), Some("asc"));
+    assert_eq!(sorted_students[0].name, "Alice");
+    assert_eq!(sorted_students[1].name, "Lou");
+    assert_eq!(sorted_students[2].name, "Romain");
+}
+
+#[test]
+fn test_sort_students_should_sort_by_age_ascending() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 14,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), Some("age"), Some("asc"));
+    assert_eq!(sorted_students[0].name, "Lou");
+    assert_eq!(sorted_students[1].name, "Romain");
+    assert_eq!(sorted_students[2].name, "Alice");
+}
+
+#[test]
+fn test_sort_students_should_return_empty_array_for_empty_input() {
+    let students = vec![];
+    let sorted_students = utils::sort_students(Some(&students), Some("name"), Some("asc"));
+    assert!(sorted_students.is_empty());
+}
+
+#[test]
+fn test_sort_students_should_return_empty_array_for_null_input() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 14,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), None, Some("asc"));
+    assert!(sorted_students.is_empty());
+}
+
+#[test]
+fn test_sort_students_should_default_to_ascending_order() {
+    let students: Vec<utils::Students> = vec![
+        utils::Students {
+            name: "Alice".to_string(),
+            grade: 14.0,
+            age: 20,
+        },
+        utils::Students {
+            name: "Lou".to_string(),
+            grade: 7.0,
+            age: 7,
+        },
+        utils::Students {
+            name: "Romain".to_string(),
+            grade: 10.0,
+            age: 14,
+        },
+    ];
+    let sorted_students = utils::sort_students(Some(&students), Some("grade"), None);
+    assert_eq!(sorted_students[0].name, "Lou");
+    assert_eq!(sorted_students[1].name, "Romain");
+    assert_eq!(sorted_students[2].name, "Alice");
 }

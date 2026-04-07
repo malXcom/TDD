@@ -1,7 +1,6 @@
 use emval::validate_email;
 use passwords::analyzer;
 
-
 pub fn is_valid_email(email: &str) -> bool {
     validate_email(email).is_ok()
 }

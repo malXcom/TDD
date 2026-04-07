@@ -50,35 +50,55 @@ fn test_is_valid_password_should_return_valid_when_given_strong_password() {
 fn test_is_valid_password_should_return_error_when_given_too_short_password() {
     let result = validators::is_valid_password("Sh0rt!");
     assert!(!result.valid);
-    assert!(result.errors.contains(&"Password must be at least 8 characters long".to_string()));
+    assert!(
+        result
+            .errors
+            .contains(&"Password must be at least 8 characters long".to_string())
+    );
 }
 
 #[test]
 fn test_is_valid_password_should_return_error_when_given_no_uppercase_letter() {
     let result = validators::is_valid_password("str0ng!pass");
     assert!(!result.valid);
-    assert!(result.errors.contains(&"Password must contain at least one uppercase letter".to_string()));
+    assert!(
+        result
+            .errors
+            .contains(&"Password must contain at least one uppercase letter".to_string())
+    );
 }
 
 #[test]
 fn test_is_valid_password_should_return_error_when_given_no_lowercase_letter() {
     let result = validators::is_valid_password("STR0NG!PASS");
     assert!(!result.valid);
-    assert!(result.errors.contains(&"Password must contain at least one lowercase letter".to_string()));
+    assert!(
+        result
+            .errors
+            .contains(&"Password must contain at least one lowercase letter".to_string())
+    );
 }
 
 #[test]
 fn test_is_valid_password_should_return_error_when_given_no_number() {
     let result = validators::is_valid_password("Strong!Pass");
     assert!(!result.valid);
-    assert!(result.errors.contains(&"Password must contain at least one number".to_string()));
+    assert!(
+        result
+            .errors
+            .contains(&"Password must contain at least one number".to_string())
+    );
 }
 
 #[test]
 fn test_is_valid_password_should_return_error_when_given_no_special_character() {
     let result = validators::is_valid_password("Str0ngPass");
     assert!(!result.valid);
-    assert!(result.errors.contains(&"Password must contain at least one special character".to_string()));
+    assert!(
+        result
+            .errors
+            .contains(&"Password must contain at least one special character".to_string())
+    );
 }
 
 #[test]
@@ -107,7 +127,7 @@ fn test_is_valid_age_should_return_false_when_given_negative_age() {
 
 #[test]
 fn test_is_valid_age_should_return_false_when_given_age_above_150() {
-    assert!(!validators::is_valid_age(150));
+    assert!(!validators::is_valid_age(151));
 }
 
 #[test]
