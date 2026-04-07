@@ -8,7 +8,7 @@
 #![warn(clippy::todo)]
 #![warn(clippy::unimplemented)]
 
-use axum_api::{routes};
+use axum_api::routes;
 use std::net::SocketAddr;
 
 #[tokio::main]

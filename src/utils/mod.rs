@@ -1,5 +1,5 @@
-use capitalize::Capitalize;
 use average::Mean;
+use capitalize::Capitalize;
 
 use slugify::slugify;
 
