@@ -1,0 +1,3 @@
+[alias]
+lint = "clippy -- -D warnings -D unused_variables -D unused_imports -D dead_code -W clippy::print_stdout -W clippy::print_stderr -W clippy::dbg_macro -W clippy::pedantic -W clippy::nursery"
+fmt-check = "fmt --check"
