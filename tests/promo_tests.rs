@@ -1,4 +1,4 @@
-use axum_api::promo::{apply_promo_code, PromoCode, PromoError, PromoType};
+use axum_api::promo::{PromoCode, PromoError, PromoType, apply_promo_code};
 use chrono::NaiveDate;
 
 fn make_promo_codes() -> Vec<PromoCode> {

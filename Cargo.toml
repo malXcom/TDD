@@ -15,6 +15,7 @@ average = "0.16.0"
 slugify = "0.1.0"
 emval = "0.1.12"
 passwords = "3.1.16"
+chrono = "0.4.44"
 
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"] }

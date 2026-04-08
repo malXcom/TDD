@@ -1,4 +1,4 @@
-use axum_api::pricing::{calculate_delivery_fee, PricingError};
+use axum_api::pricing::{PricingError, calculate_delivery_fee};
 
 // ── normal cases ─────────────────────────────────────────────────────────────
 
@@ -48,17 +48,26 @@ fn test_calculate_delivery_fee_should_return_correct_when_given_10km_and_6kg() {
 
 #[test]
 fn test_calculate_delivery_fee_should_return_error_when_given_distance_over_10km() {
-    assert_eq!(calculate_delivery_fee(15.0, 1.0), Err(PricingError::DistanceTooFar));
+    assert_eq!(
+        calculate_delivery_fee(15.0, 1.0),
+        Err(PricingError::DistanceTooFar)
+    );
 }
 
 #[test]
 fn test_calculate_delivery_fee_should_return_error_when_given_negative_distance() {
-    assert_eq!(calculate_delivery_fee(-1.0, 1.0), Err(PricingError::NegativeDistance));
+    assert_eq!(
+        calculate_delivery_fee(-1.0, 1.0),
+        Err(PricingError::NegativeDistance)
+    );
 }
 
 #[test]
 fn test_calculate_delivery_fee_should_return_error_when_given_negative_weight() {
-    assert_eq!(calculate_delivery_fee(2.0, -1.0), Err(PricingError::NegativeWeight));
+    assert_eq!(
+        calculate_delivery_fee(2.0, -1.0),
+        Err(PricingError::NegativeWeight)
+    );
 }
 
 #[test]
