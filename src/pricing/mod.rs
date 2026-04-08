@@ -5,13 +5,15 @@ const FEE_PER_KM: f64 = 0.50;
 const HEAVY_WEIGHT_KG: f64 = 5.0;
 const HEAVY_WEIGHT_SUPPLEMENT: f64 = 1.50;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PricingError {
     DistanceTooFar,
     NegativeDistance,
     NegativeWeight,
 }
 
+/// # Errors
+/// Returns `Err` if distance or weight is negative, or distance exceeds 10km.
 pub fn calculate_delivery_fee(distance: f64, weight: f64) -> Result<f64, PricingError> {
     if distance < 0.0 {
         return Err(PricingError::NegativeDistance);

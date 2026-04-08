@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Eq)]
 pub enum PromoType {
     Percentage,
     Fixed,
@@ -15,7 +15,7 @@ pub struct PromoCode {
     pub expires_at: NaiveDate,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PromoError {
     CodeNotFound,
     CodeExpired,
@@ -23,6 +23,9 @@ pub enum PromoError {
     NegativeSubtotal,
 }
 
+/// # Errors
+/// Returns `Err` if subtotal is negative, the code is unknown,
+/// the code has expired, or the order is below the minimum required amount.
 pub fn apply_promo_code(
     subtotal: f64,
     promo_code: Option<&str>,

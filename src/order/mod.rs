@@ -18,7 +18,7 @@ pub struct OrderTotal {
     pub total: f64,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum OrderError {
     EmptyCart,
     NegativePrice,
@@ -29,16 +29,19 @@ pub enum OrderError {
 
 impl From<PricingError> for OrderError {
     fn from(e: PricingError) -> Self {
-        OrderError::DeliveryError(e)
+        Self::DeliveryError(e)
     }
 }
 
 impl From<PromoError> for OrderError {
     fn from(e: PromoError) -> Self {
-        OrderError::PromoError(e)
+        Self::PromoError(e)
     }
 }
 
+/// # Errors
+/// Returns `Err` if cart is empty, any item has a negative price,
+/// the service is closed at the given hour, or delivery/promo calculation fails.
 pub fn calculate_order_total(
     items: &[Item],
     distance: f64,
@@ -63,7 +66,10 @@ pub fn calculate_order_total(
         return Err(OrderError::ClosedAtThisHour);
     }
 
-    let subtotal: f64 = items.iter().map(|i| i.price * i.quantity as f64).sum();
+    let subtotal: f64 = items
+        .iter()
+        .map(|i| i.price * f64::from(i.quantity))
+        .sum();
     let subtotal = (subtotal * 100.0).round() / 100.0;
 
     let discounted = apply_promo_code(subtotal, promo_code, promo_codes)?;

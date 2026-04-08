@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Eq)]
 pub enum DayOfWeek {
     Monday,
     Tuesday,
@@ -11,34 +11,34 @@ pub enum DayOfWeek {
 
 impl std::str::FromStr for DayOfWeek {
     type Err = ();
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "monday" => Ok(DayOfWeek::Monday),
-            "tuesday" => Ok(DayOfWeek::Tuesday),
-            "wednesday" => Ok(DayOfWeek::Wednesday),
-            "thursday" => Ok(DayOfWeek::Thursday),
-            "friday" => Ok(DayOfWeek::Friday),
-            "saturday" => Ok(DayOfWeek::Saturday),
-            "sunday" => Ok(DayOfWeek::Sunday),
+            "monday" => Ok(Self::Monday),
+            "tuesday" => Ok(Self::Tuesday),
+            "wednesday" => Ok(Self::Wednesday),
+            "thursday" => Ok(Self::Thursday),
+            "friday" => Ok(Self::Friday),
+            "saturday" => Ok(Self::Saturday),
+            "sunday" => Ok(Self::Sunday),
             _ => Err(()),
         }
     }
 }
 
 impl DayOfWeek {
-    fn is_weekday(&self) -> bool {
+    const fn is_weekday(self) -> bool {
         matches!(
             self,
-            DayOfWeek::Monday | DayOfWeek::Tuesday | DayOfWeek::Wednesday | DayOfWeek::Thursday
+            Self::Monday | Self::Tuesday | Self::Wednesday | Self::Thursday
         )
     }
 
-    fn is_friday_saturday(&self) -> bool {
-        matches!(self, DayOfWeek::Friday | DayOfWeek::Saturday)
+    const fn is_friday_saturday(self) -> bool {
+        matches!(self, Self::Friday | Self::Saturday)
     }
 }
 
+#[must_use]
 pub fn calculate_surge(hour: f64, day: DayOfWeek) -> f64 {
     if !(10.0..22.0).contains(&hour) {
         return 0.0;

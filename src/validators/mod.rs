@@ -1,6 +1,7 @@
 use emval::validate_email;
 use passwords::analyzer;
 
+#[must_use]
 pub fn is_valid_email(email: &str) -> bool {
     validate_email(email).is_ok()
 }
@@ -9,6 +10,7 @@ pub struct PasswordValidation {
     pub errors: Vec<String>,
 }
 
+#[must_use]
 pub fn is_valid_password(password: &str) -> PasswordValidation {
     let analyzed = analyzer::analyze(password);
     let mut errors: Vec<String> = Vec::new();
@@ -34,6 +36,7 @@ pub fn is_valid_password(password: &str) -> PasswordValidation {
     }
 }
 
-pub fn is_valid_age(age: i32) -> bool {
+#[must_use]
+pub const fn is_valid_age(age: i32) -> bool {
     age > 0 && age < 150
 }

@@ -52,7 +52,7 @@ fn error(msg: &str) -> Json<ErrorResponse> {
     })
 }
 
-fn map_order_error(e: OrderError) -> (StatusCode, Json<ErrorResponse>) {
+fn map_order_error(e: &OrderError) -> (StatusCode, Json<ErrorResponse>) {
     let msg = match &e {
         OrderError::EmptyCart => "Cart is empty".to_string(),
         OrderError::NegativePrice => "Item price cannot be negative".to_string(),
@@ -85,7 +85,7 @@ fn parse_request(req: &OrderRequest) -> ParseResult<'_> {
     let day = req
         .day
         .parse::<DayOfWeek>()
-        .map_err(|_| (StatusCode::BAD_REQUEST, error("Invalid day of week")))?;
+        .map_err(|()| (StatusCode::BAD_REQUEST, error("Invalid day of week")))?;
 
     let items: Vec<Item> = req
         .items
@@ -104,6 +104,7 @@ fn parse_request(req: &OrderRequest) -> ParseResult<'_> {
 
 // ── POST /orders/simulate ─────────────────────────────────────────────────────
 
+#[allow(clippy::unused_async)]
 pub async fn simulate_order(
     State(state): State<AppState>,
     Json(req): Json<OrderRequest>,
@@ -133,12 +134,15 @@ pub async fn simulate_order(
             }),
         )
             .into_response(),
-        Err(e) => map_order_error(e).into_response(),
+        Err(e) => map_order_error(&e).into_response(),
     }
 }
 
 // ── POST /orders ──────────────────────────────────────────────────────────────
 
+/// # Panics
+/// Panics if the order store mutex is poisoned.
+#[allow(clippy::unused_async)]
 pub async fn create_order(
     State(state): State<AppState>,
     Json(req): Json<OrderRequest>,
@@ -158,23 +162,29 @@ pub async fn create_order(
         day,
     ) {
         Ok(total) => {
-            let stored = StoredOrder::from_total(total);
-            let mut store = state.store.lock().unwrap();
-            store.insert(stored.id.clone(), stored.clone());
+            let stored = StoredOrder::from_total(&total);
+            state
+                .store
+                .lock()
+                .unwrap()
+                .insert(stored.id.clone(), stored.clone());
             (StatusCode::CREATED, Json(stored)).into_response()
         }
-        Err(e) => map_order_error(e).into_response(),
+        Err(e) => map_order_error(&e).into_response(),
     }
 }
 
 // ── GET /orders/:id ───────────────────────────────────────────────────────────
 
+/// # Panics
+/// Panics if the order store mutex is poisoned.
+#[allow(clippy::unused_async)]
 pub async fn get_order(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
     let store = state.store.lock().unwrap();
-    match store.get(&id) {
-        Some(order) => (StatusCode::OK, Json(order.clone())).into_response(),
-        None => (StatusCode::NOT_FOUND, error("Order not found")).into_response(),
-    }
+    store.get(&id).map_or_else(
+        || (StatusCode::NOT_FOUND, error("Order not found")).into_response(),
+        |order| (StatusCode::OK, Json(order.clone())).into_response(),
+    )
 }
 
 // ── POST /promo/validate ──────────────────────────────────────────────────────
@@ -193,6 +203,7 @@ pub struct PromoValidateResponse {
     pub discount: f64,
 }
 
+#[allow(clippy::unused_async)]
 pub async fn validate_promo(
     State(state): State<AppState>,
     Json(req): Json<PromoValidateRequest>,
@@ -229,6 +240,6 @@ pub async fn validate_promo(
             error("Order does not meet minimum amount for this promo"),
         )
             .into_response(),
-        Err(e) => (StatusCode::BAD_REQUEST, error(&format!("{:?}", e))).into_response(),
+        Err(e) => (StatusCode::BAD_REQUEST, error(&format!("{e:?}"))).into_response(),
     }
 }

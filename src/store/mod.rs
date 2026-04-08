@@ -15,8 +15,9 @@ pub struct StoredOrder {
 }
 
 impl StoredOrder {
-    pub fn from_total(total: OrderTotal) -> Self {
-        StoredOrder {
+    #[must_use]
+    pub fn from_total(total: &OrderTotal) -> Self {
+        Self {
             id: Uuid::new_v4().to_string(),
             subtotal: total.subtotal,
             discount: total.discount,
@@ -29,6 +30,7 @@ impl StoredOrder {
 
 pub type OrderStore = Arc<Mutex<HashMap<String, StoredOrder>>>;
 
+#[must_use]
 pub fn new_store() -> OrderStore {
     Arc::new(Mutex::new(HashMap::new()))
 }

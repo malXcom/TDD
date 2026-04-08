@@ -3,19 +3,23 @@ use capitalize::Capitalize;
 
 use slugify::slugify;
 
+#[must_use]
 pub fn capitalize(str: &str) -> String {
     str.capitalize()
 }
 
+#[must_use]
 pub fn average(numbers: &[f64]) -> f64 {
     let mean: Mean = numbers.iter().collect();
     (mean.mean() * 100.0).round() / 100.0
 }
 
+#[must_use]
 pub fn slug(str: &str) -> String {
     slugify!(&str)
 }
 
+#[must_use]
 pub fn clamp(value: i32, min: i32, max: i32) -> i32 {
     value.clamp(min, max)
 }
@@ -33,11 +37,11 @@ enum SortBy {
 }
 
 impl SortBy {
-    fn from_str(s: &str) -> Option<SortBy> {
+    fn from_str(s: &str) -> Option<Self> {
         match s {
-            "name" => Some(SortBy::Name),
-            "grade" => Some(SortBy::Grade),
-            "age" => Some(SortBy::Age),
+            "name" => Some(Self::Name),
+            "grade" => Some(Self::Grade),
+            "age" => Some(Self::Age),
             _ => None,
         }
     }
@@ -49,10 +53,10 @@ enum Order {
 }
 
 impl Order {
-    fn from_str(s: &str) -> Option<Order> {
+    fn from_str(s: &str) -> Option<Self> {
         match s {
-            "asc" => Some(Order::Ascendant),
-            "desc" => Some(Order::Descendant),
+            "asc" => Some(Self::Ascendant),
+            "desc" => Some(Self::Descendant),
             _ => None,
         }
     }
@@ -64,21 +68,15 @@ pub fn sort_students<'std>(
     order: Option<&str>,
 ) -> Vec<&'std Students> {
     let mut result: Vec<&'std Students> = match students {
-        Some([]) => return vec![],
+        Some([]) | None => return vec![],
         Some(s) => s.iter().collect(),
-        None => return vec![],
     };
 
-    let sorted = match sort_by.and_then(SortBy::from_str) {
-        Some(s) => s,
-        None => return vec![],
+    let Some(sorted) = sort_by.and_then(SortBy::from_str) else {
+        return vec![];
     };
-
-    let _ordered = order.unwrap_or("asc");
-
-    let ordered = match Order::from_str(_ordered) {
-        Some(o) => o,
-        None => return vec![],
+    let Some(ordered) = Order::from_str(order.unwrap_or("asc")) else {
+        return vec![];
     };
 
     result.sort_by(|a, b| {

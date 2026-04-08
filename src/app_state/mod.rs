@@ -10,7 +10,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(store: OrderStore) -> Self {
-        AppState {
+        Self {
             store,
             promo_codes: default_promo_codes(),
         }
