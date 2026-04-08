@@ -12,3 +12,4 @@ pub mod routes;
 pub mod utils;
 pub mod validators;
 pub mod pricing;
+pub mod promo;
