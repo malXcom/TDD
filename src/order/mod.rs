@@ -66,10 +66,7 @@ pub fn calculate_order_total(
         return Err(OrderError::ClosedAtThisHour);
     }
 
-    let subtotal: f64 = items
-        .iter()
-        .map(|i| i.price * f64::from(i.quantity))
-        .sum();
+    let subtotal: f64 = items.iter().map(|i| i.price * f64::from(i.quantity)).sum();
     let subtotal = (subtotal * 100.0).round() / 100.0;
 
     let discounted = apply_promo_code(subtotal, promo_code, promo_codes)?;

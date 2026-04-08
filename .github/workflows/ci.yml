@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  checkout:
+    name: Checkout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+  setup:
+    name: Setup [${{ matrix.rust }}]
+    runs-on: ubuntu-latest
+    needs: checkout
+    strategy:
+      matrix:
+        rust: [stable, beta]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.rust }}
+      - name: Print toolchain versions
+        run: |
+          rustc --version
+          cargo --version
+          rustfmt --version
+          cargo clippy --version
+
+  install:
+    name: Install [${{ matrix.rust }}]
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        rust: [stable, beta]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.rust }}
+      - name: Fetch dependencies
+        run: cargo fetch
+      - name: Security audit
+        uses: rustsec/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    name: Lint [${{ matrix.rust }}]
+    runs-on: ubuntu-latest
+    needs: install
+    strategy:
+      matrix:
+        rust: [stable, beta]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.rust }}
+      - name: Format check
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy -- -D warnings -D unused_variables -D unused_imports -D dead_code -W clippy::print_stdout -W clippy::print_stderr -W clippy::dbg_macro
+
+  test:
+    name: Test [${{ matrix.rust }}]
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        rust: [stable, beta]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.rust }}
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+      - name: Coverage
+        run: cargo tarpaulin --verbose --fail-under 80 --out Stdout --out Lcov --out Html --output-dir coverage/
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.rust }}
+          path: coverage/
+          retention-days: 7
+
+  build:
+    name: Build [${{ matrix.rust }}]
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        rust: [stable, beta]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.rust }}
+      - name: Build release
+        run: cargo build --release
