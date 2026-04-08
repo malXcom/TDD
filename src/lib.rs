@@ -8,6 +8,7 @@
 #![warn(clippy::todo)]
 #![warn(clippy::unimplemented)]
 
+pub mod order;
 pub mod pricing;
 pub mod promo;
 pub mod routes;
