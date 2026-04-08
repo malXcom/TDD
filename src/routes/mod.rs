@@ -1,15 +1,15 @@
 use axum::{
+    Json,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    Json,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::app_state::AppState;
-use crate::order::{calculate_order_total, Item, OrderError};
+use crate::order::{Item, OrderError, calculate_order_total};
 use crate::pricing::PricingError;
-use crate::promo::{apply_promo_code, PromoError};
+use crate::promo::{PromoError, apply_promo_code};
 use crate::store::StoredOrder;
 use crate::surge::DayOfWeek;
 
@@ -47,7 +47,9 @@ pub struct ErrorResponse {
 }
 
 fn error(msg: &str) -> Json<ErrorResponse> {
-    Json(ErrorResponse { error: msg.to_string() })
+    Json(ErrorResponse {
+        error: msg.to_string(),
+    })
 }
 
 fn map_order_error(e: OrderError) -> (StatusCode, Json<ErrorResponse>) {
@@ -55,26 +57,45 @@ fn map_order_error(e: OrderError) -> (StatusCode, Json<ErrorResponse>) {
         OrderError::EmptyCart => "Cart is empty".to_string(),
         OrderError::NegativePrice => "Item price cannot be negative".to_string(),
         OrderError::ClosedAtThisHour => "Service is closed at this hour".to_string(),
-        OrderError::DeliveryError(PricingError::DistanceTooFar) => "Distance exceeds 10km limit".to_string(),
-        OrderError::DeliveryError(PricingError::NegativeDistance) => "Distance cannot be negative".to_string(),
-        OrderError::DeliveryError(PricingError::NegativeWeight) => "Weight cannot be negative".to_string(),
+        OrderError::DeliveryError(PricingError::DistanceTooFar) => {
+            "Distance exceeds 10km limit".to_string()
+        }
+        OrderError::DeliveryError(PricingError::NegativeDistance) => {
+            "Distance cannot be negative".to_string()
+        }
+        OrderError::DeliveryError(PricingError::NegativeWeight) => {
+            "Weight cannot be negative".to_string()
+        }
         OrderError::PromoError(PromoError::CodeExpired) => "Promo code has expired".to_string(),
-        OrderError::PromoError(PromoError::OrderTooLow) => "Order does not meet minimum amount for this promo".to_string(),
+        OrderError::PromoError(PromoError::OrderTooLow) => {
+            "Order does not meet minimum amount for this promo".to_string()
+        }
         OrderError::PromoError(PromoError::CodeNotFound) => "Promo code not found".to_string(),
-        OrderError::PromoError(PromoError::NegativeSubtotal) => "Subtotal cannot be negative".to_string(),
+        OrderError::PromoError(PromoError::NegativeSubtotal) => {
+            "Subtotal cannot be negative".to_string()
+        }
     };
     (StatusCode::BAD_REQUEST, error(&msg))
 }
 
-fn parse_request(req: &OrderRequest) -> Result<(Vec<Item>, Option<&str>, DayOfWeek), (StatusCode, Json<ErrorResponse>)> {
-    let day = DayOfWeek::from_str(&req.day)
-        .ok_or_else(|| (StatusCode::BAD_REQUEST, error("Invalid day of week")))?;
+type ParseResult<'a> =
+    Result<(Vec<Item>, Option<&'a str>, DayOfWeek), (StatusCode, Json<ErrorResponse>)>;
 
-    let items: Vec<Item> = req.items.iter().map(|i| Item {
-        name: i.name.clone(),
-        price: i.price,
-        quantity: i.quantity,
-    }).collect();
+fn parse_request(req: &OrderRequest) -> ParseResult<'_> {
+    let day = req
+        .day
+        .parse::<DayOfWeek>()
+        .map_err(|_| (StatusCode::BAD_REQUEST, error("Invalid day of week")))?;
+
+    let items: Vec<Item> = req
+        .items
+        .iter()
+        .map(|i| Item {
+            name: i.name.clone(),
+            price: i.price,
+            quantity: i.quantity,
+        })
+        .collect();
 
     let promo = req.promo_code.as_deref();
 
@@ -92,14 +113,26 @@ pub async fn simulate_order(
         Err(e) => return e.into_response(),
     };
 
-    match calculate_order_total(&items, req.distance, req.weight, promo, &state.promo_codes, req.hour, day) {
-        Ok(total) => (StatusCode::OK, Json(OrderTotalResponse {
-            subtotal: total.subtotal,
-            discount: total.discount,
-            delivery_fee: total.delivery_fee,
-            surge: total.surge,
-            total: total.total,
-        })).into_response(),
+    match calculate_order_total(
+        &items,
+        req.distance,
+        req.weight,
+        promo,
+        &state.promo_codes,
+        req.hour,
+        day,
+    ) {
+        Ok(total) => (
+            StatusCode::OK,
+            Json(OrderTotalResponse {
+                subtotal: total.subtotal,
+                discount: total.discount,
+                delivery_fee: total.delivery_fee,
+                surge: total.surge,
+                total: total.total,
+            }),
+        )
+            .into_response(),
         Err(e) => map_order_error(e).into_response(),
     }
 }
@@ -115,7 +148,15 @@ pub async fn create_order(
         Err(e) => return e.into_response(),
     };
 
-    match calculate_order_total(&items, req.distance, req.weight, promo, &state.promo_codes, req.hour, day) {
+    match calculate_order_total(
+        &items,
+        req.distance,
+        req.weight,
+        promo,
+        &state.promo_codes,
+        req.hour,
+        day,
+    ) {
         Ok(total) => {
             let stored = StoredOrder::from_total(total);
             let mut store = state.store.lock().unwrap();
@@ -128,10 +169,7 @@ pub async fn create_order(
 
 // ── GET /orders/:id ───────────────────────────────────────────────────────────
 
-pub async fn get_order(
-    State(state): State<AppState>,
-    Path(id): Path<String>,
-) -> impl IntoResponse {
+pub async fn get_order(State(state): State<AppState>, Path(id): Path<String>) -> impl IntoResponse {
     let store = state.store.lock().unwrap();
     match store.get(&id) {
         Some(order) => (StatusCode::OK, Json(order.clone())).into_response(),
@@ -161,7 +199,7 @@ pub async fn validate_promo(
 ) -> impl IntoResponse {
     let code = match req.code.as_deref() {
         None | Some("") => {
-            return (StatusCode::BAD_REQUEST, error("Promo code is required")).into_response()
+            return (StatusCode::BAD_REQUEST, error("Promo code is required")).into_response();
         }
         Some(c) => c,
     };
@@ -169,12 +207,16 @@ pub async fn validate_promo(
     match apply_promo_code(req.subtotal, Some(code), &state.promo_codes) {
         Ok(discounted) => {
             let discount = ((req.subtotal - discounted) * 100.0).round() / 100.0;
-            (StatusCode::OK, Json(PromoValidateResponse {
-                valid: true,
-                original: req.subtotal,
-                discounted,
-                discount,
-            })).into_response()
+            (
+                StatusCode::OK,
+                Json(PromoValidateResponse {
+                    valid: true,
+                    original: req.subtotal,
+                    discounted,
+                    discount,
+                }),
+            )
+                .into_response()
         }
         Err(PromoError::CodeNotFound) => {
             (StatusCode::NOT_FOUND, error("Promo code not found")).into_response()
@@ -182,11 +224,11 @@ pub async fn validate_promo(
         Err(PromoError::CodeExpired) => {
             (StatusCode::BAD_REQUEST, error("Promo code has expired")).into_response()
         }
-        Err(PromoError::OrderTooLow) => {
-            (StatusCode::BAD_REQUEST, error("Order does not meet minimum amount for this promo")).into_response()
-        }
-        Err(e) => {
-            (StatusCode::BAD_REQUEST, error(&format!("{:?}", e))).into_response()
-        }
+        Err(PromoError::OrderTooLow) => (
+            StatusCode::BAD_REQUEST,
+            error("Order does not meet minimum amount for this promo"),
+        )
+            .into_response(),
+        Err(e) => (StatusCode::BAD_REQUEST, error(&format!("{:?}", e))).into_response(),
     }
 }

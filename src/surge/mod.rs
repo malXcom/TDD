@@ -9,20 +9,24 @@ pub enum DayOfWeek {
     Sunday,
 }
 
-impl DayOfWeek {
-    pub fn from_str(s: &str) -> Option<DayOfWeek> {
+impl std::str::FromStr for DayOfWeek {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "monday" => Some(DayOfWeek::Monday),
-            "tuesday" => Some(DayOfWeek::Tuesday),
-            "wednesday" => Some(DayOfWeek::Wednesday),
-            "thursday" => Some(DayOfWeek::Thursday),
-            "friday" => Some(DayOfWeek::Friday),
-            "saturday" => Some(DayOfWeek::Saturday),
-            "sunday" => Some(DayOfWeek::Sunday),
-            _ => None,
+            "monday" => Ok(DayOfWeek::Monday),
+            "tuesday" => Ok(DayOfWeek::Tuesday),
+            "wednesday" => Ok(DayOfWeek::Wednesday),
+            "thursday" => Ok(DayOfWeek::Thursday),
+            "friday" => Ok(DayOfWeek::Friday),
+            "saturday" => Ok(DayOfWeek::Saturday),
+            "sunday" => Ok(DayOfWeek::Sunday),
+            _ => Err(()),
         }
     }
+}
 
+impl DayOfWeek {
     fn is_weekday(&self) -> bool {
         matches!(
             self,
