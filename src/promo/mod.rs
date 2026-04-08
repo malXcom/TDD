@@ -1,12 +1,12 @@
 use chrono::NaiveDate;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PromoType {
     Percentage,
     Fixed,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PromoCode {
     pub code: String,
     pub promo_type: PromoType,
