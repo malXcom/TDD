@@ -36,7 +36,7 @@ impl DayOfWeek {
 }
 
 pub fn calculate_surge(hour: f64, day: DayOfWeek) -> f64 {
-    if hour < 10.0 || hour >= 22.0 {
+    if !(10.0..22.0).contains(&hour) {
         return 0.0;
     }
 
@@ -49,10 +49,10 @@ pub fn calculate_surge(hour: f64, day: DayOfWeek) -> f64 {
     }
 
     if day.is_weekday() {
-        if hour >= 12.0 && hour < 13.5 {
+        if (12.0..13.5).contains(&hour) {
             return 1.3;
         }
-        if hour >= 19.0 && hour < 21.0 {
+        if (19.0..21.0).contains(&hour) {
             return 1.5;
         }
     }

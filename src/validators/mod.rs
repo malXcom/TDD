@@ -35,5 +35,5 @@ pub fn is_valid_password(password: &str) -> PasswordValidation {
 }
 
 pub fn is_valid_age(age: i32) -> bool {
-    return age > 0 && age < 150;
+    age > 0 && age < 150
 }

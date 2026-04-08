@@ -4,20 +4,20 @@ use capitalize::Capitalize;
 use slugify::slugify;
 
 pub fn capitalize(str: &str) -> String {
-    return str.capitalize();
+    str.capitalize()
 }
 
 pub fn average(numbers: &[f64]) -> f64 {
     let mean: Mean = numbers.iter().collect();
-    return (mean.mean() * 100.0).round() / 100.0;
+    (mean.mean() * 100.0).round() / 100.0
 }
 
 pub fn slug(str: &str) -> String {
-    return slugify!(&str);
+    slugify!(&str)
 }
 
 pub fn clamp(value: i32, min: i32, max: i32) -> i32 {
-    return value.clamp(min, max);
+    value.clamp(min, max)
 }
 
 pub struct Students {
@@ -64,7 +64,7 @@ pub fn sort_students<'std>(
     order: Option<&str>,
 ) -> Vec<&'std Students> {
     let mut result: Vec<&'std Students> = match students {
-        Some(s) if s.is_empty() => return vec![],
+        Some([]) => return vec![],
         Some(s) => s.iter().collect(),
         None => return vec![],
     };
