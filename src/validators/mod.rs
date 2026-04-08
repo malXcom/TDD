@@ -1,5 +1,5 @@
-use validator::ValidateEmail;
 use passwords::analyzer;
+use validator::ValidateEmail;
 
 #[must_use]
 pub fn is_valid_email(email: &str) -> bool {
