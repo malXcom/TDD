@@ -1,9 +1,9 @@
-use emval::validate_email;
+use validator::ValidateEmail;
 use passwords::analyzer;
 
 #[must_use]
 pub fn is_valid_email(email: &str) -> bool {
-    validate_email(email).is_ok()
+    email.validate_email()
 }
 pub struct PasswordValidation {
     pub valid: bool,

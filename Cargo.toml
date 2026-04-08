@@ -13,11 +13,11 @@ tracing-subscriber = "0.3"
 capitalize = "0.3.4"
 average = "0.16.0"
 slugify = "0.1.0"
-emval = "0.1.12"
 passwords = "3.1.16"
 chrono = "0.4.44"
 uuid = { version = "1", features = ["v4"] }
 axum-test = "20.0.0"
+validator = { version = "0.20.0", features = ["derive"] }
 
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"] }
